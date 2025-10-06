@@ -59,8 +59,7 @@
         }
       ],
       "expo-secure-store",
-      "expo-notifications",
-      "react-native-maps"
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true
