@@ -68,7 +68,7 @@ export default function FreightsScreen() {
 
   const filteredFreights = freights.filter((f) => {
     if (filter === "active") {
-      return f.isActive && f.booking.status !== BookingStatus.DONE;
+      return f.isActive && f?.booking?.status !== BookingStatus.DONE;
     }
     if (filter === "in_motion") {
       return isInMotion(f);
@@ -78,7 +78,7 @@ export default function FreightsScreen() {
 
   const inMotionCount = freights.filter(isInMotion).length;
   const activeCount = freights.filter(
-    (f) => f.isActive && f.booking.status !== BookingStatus.DONE
+    (f) => f.isActive && f?.booking?.status !== BookingStatus.DONE
   ).length;
 
   if (!session) {

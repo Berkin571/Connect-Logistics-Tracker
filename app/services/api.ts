@@ -33,10 +33,17 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error("❌ Response Error:", error.message);
-    console.error("Status:", error.response?.status);
-    console.error("Data:", error.response?.data);
-    console.error("URL:", error.config?.url);
+    // Nur wichtige Fehler loggen (keine 404 für optionale Endpoints)
+    if (error.config?.url?.includes("/geofences")) {
+      console.warn("⚠️ Geofences nicht verfügbar (404) - wird ignoriert");
+    } else {
+      console.error("❌ Response Error:", error.message);
+      console.error("Status:", error.response?.status);
+      console.error("URL:", error.config?.url);
+      if (error.response?.status !== 404) {
+        console.error("Data:", error.response?.data);
+      }
+    }
     return Promise.reject(error);
   }
 );
