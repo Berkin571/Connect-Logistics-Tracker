@@ -1,7 +1,6 @@
 import * as ExpoLocation from "expo-location";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Dimensions,
   NativeModules,
   Platform,
   Pressable,
@@ -213,50 +212,108 @@ export default function MapScreen() {
     }
   }
 
-  return (
-    <Box flex={1}>
-      <HStack p="$3" justifyContent="space-between" alignItems="center">
-        <Text>
-          Angemeldet: {session?.user.name} ({session?.user.roles.join(", ")})
-        </Text>
-        <HStack space="md" alignItems="center">
-          <LocationShareToggle />
-          <Button action="negative" onPress={logout}>
-            <ButtonText>Logout</ButtonText>
-          </Button>
-        </HStack>
-      </HStack>
+  const userName =
+    session?.user.fullName ||
+    `${session?.user.firstName} ${session?.user.lastName}`;
+  const userRole = session?.user.role || session?.user.roles?.[0];
 
+  return (
+    <Box flex={1} bg="$backgroundLight0">
+      {/* Modern Header */}
+      <Box
+        px="$4"
+        py="$3"
+        bg="$white"
+        borderBottomWidth={1}
+        borderBottomColor="$borderLight200"
+        shadowColor="$black"
+        shadowOffset={{ width: 0, height: 2 }}
+        shadowOpacity={0.05}
+        shadowRadius={4}
+        elevation={2}
+      >
+        <HStack justifyContent="space-between" alignItems="center">
+          {/* User Info */}
+          <Box flex={1}>
+            <Text fontSize="$lg" fontWeight="$semibold" color="$textLight900">
+              {userName}
+            </Text>
+            <HStack space="xs" alignItems="center" mt="$1">
+              <Badge size="sm" variant="solid" action="info">
+                <BadgeText fontSize="$xs">{userRole?.toUpperCase()}</BadgeText>
+              </Badge>
+              {session?.user.isAdmin && (
+                <Badge size="sm" variant="solid" action="success">
+                  <BadgeText fontSize="$xs">ADMIN</BadgeText>
+                </Badge>
+              )}
+            </HStack>
+          </Box>
+
+          {/* Controls */}
+          <HStack space="sm" alignItems="center">
+            <Button
+              size="sm"
+              action="negative"
+              variant="outline"
+              onPress={logout}
+            >
+              <ButtonText fontSize="$sm">Logout</ButtonText>
+            </Button>
+          </HStack>
+        </HStack>
+
+        {/* Location Sharing Toggle */}
+        <Box
+          mt="$3"
+          pt="$3"
+          borderTopWidth={1}
+          borderTopColor="$borderLight100"
+        >
+          <LocationShareToggle />
+        </Box>
+      </Box>
+
+      {/* Warning for no maps */}
       {!MAPS_AVAILABLE && (
-        <HStack px="$3" py="$2">
-          <Badge action="warning">
+        <Box mx="$4" mt="$3">
+          <Badge action="warning" variant="solid">
             <BadgeText>
               {Platform.OS === "web"
-                ? "Web: Platzhalter statt Karte"
-                : "react-native-maps nicht in der Binary – Platzhalter aktiv"}
+                ? "Web: Karten-Platzhalter aktiv"
+                : "react-native-maps nicht verfügbar"}
             </BadgeText>
           </Badge>
-        </HStack>
+        </Box>
       )}
 
+      {/* Map Container */}
       {MAPS_AVAILABLE ? (
-        <>
+        <Box flex={1} position="relative">
           <MapView
             ref={mapRef}
             style={styles.map}
             provider={PROVIDER_GOOGLE}
             initialRegion={initialRegion}
             showsUserLocation
+            showsMyLocationButton={false}
+            showsCompass
+            mapType="standard"
           >
             {/* Server-Marker (du & andere, wenn durch RBAC sichtbar) */}
-            {visible.map((l) => (
-              <Marker
-                key={`${l.userId}-${l.point.timestamp}`}
-                coordinate={{ latitude: l.point.lat, longitude: l.point.lng }}
-                title={l.name ?? l.userId}
-                description={`Firma: ${l.companyId}`}
-              />
-            ))}
+            {visible.map((l) => {
+              const isMe =
+                l.userId === session?.user.id || l.userId === session?.user._id;
+              return (
+                <Marker
+                  key={`${l.userId}-${l.point.timestamp}`}
+                  coordinate={{ latitude: l.point.lat, longitude: l.point.lng }}
+                  title={l.name ?? l.userId}
+                  description={`Firma: ${l.companyId}`}
+                  pinColor={isMe ? "#3b82f6" : "#ef4444"}
+                />
+              );
+            })}
 
             {/* Geofences */}
             {geofences.map((g) => (
@@ -264,47 +321,109 @@ export default function MapScreen() {
                 key={`gf-${g.id}`}
                 center={{ latitude: g.lat, longitude: g.lng }}
                 radius={g.radius}
+                strokeColor="rgba(59, 130, 246, 0.8)"
+                fillColor="rgba(59, 130, 246, 0.2)"
+                strokeWidth={2}
               />
             ))}
 
             {/* Fallback: falls (noch) kein Server-Marker für mich existiert, zeige lokalen Marker */}
-            {!visible.some((v) => v.userId === session?.user.id) && myLoc && (
-              <Marker
-                coordinate={{ latitude: myLoc.lat, longitude: myLoc.lng }}
-                title="Du"
-                description={
-                  usingFallback
-                    ? "Lokale Position (Fallback)"
-                    : "Deine Position"
-                }
-              />
-            )}
+            {!visible.some(
+              (v) =>
+                v.userId === session?.user.id || v.userId === session?.user._id
+            ) &&
+              myLoc && (
+                <Marker
+                  coordinate={{ latitude: myLoc.lat, longitude: myLoc.lng }}
+                  title="Deine Position"
+                  description={
+                    usingFallback
+                      ? "Lokale Position (Fallback)"
+                      : "Aktuelle Position"
+                  }
+                  pinColor="#3b82f6"
+                />
+              )}
           </MapView>
-          <Pressable
-            onPress={centerOnMe}
-            style={{
-              position: "absolute",
-              right: 16,
-              bottom: 20,
-              backgroundColor: "white",
-              borderRadius: 24,
-              paddingHorizontal: 12,
-              paddingVertical: 12,
-              shadowColor: "#000",
-              shadowOpacity: 0.4,
-              shadowRadius: 12,
-              elevation: 4,
-            }}
-          >
-            <RNText>📍</RNText>
-          </Pressable>
-        </>
+
+          {/* Map Controls */}
+          <Box position="absolute" right={16} bottom={20}>
+            {/* Center on Me Button */}
+            <Pressable onPress={centerOnMe} style={styles.mapButton}>
+              <RNText style={styles.mapButtonIcon}>📍</RNText>
+            </Pressable>
+          </Box>
+
+          {/* Status Indicator */}
+          {(usingServer || usingFallback) && (
+            <Box
+              position="absolute"
+              left={16}
+              bottom={20}
+              bg="$white"
+              px="$3"
+              py="$2"
+              borderRadius="$lg"
+              shadowColor="$black"
+              shadowOffset={{ width: 0, height: 2 }}
+              shadowOpacity={0.2}
+              shadowRadius={4}
+              elevation={3}
+            >
+              <HStack space="xs" alignItems="center">
+                <Box
+                  w={8}
+                  h={8}
+                  borderRadius="$full"
+                  bg={usingServer ? "$green500" : "$amber500"}
+                />
+                <Text fontSize="$xs" color="$textLight700">
+                  {usingServer ? "Live-Tracking" : "Lokales GPS"}
+                </Text>
+              </HStack>
+            </Box>
+          )}
+
+          {/* Visible Locations Count */}
+          {visible.length > 0 && (
+            <Box
+              position="absolute"
+              top={16}
+              left={16}
+              bg="$white"
+              px="$3"
+              py="$2"
+              borderRadius="$lg"
+              shadowColor="$black"
+              shadowOffset={{ width: 0, height: 2 }}
+              shadowOpacity={0.2}
+              shadowRadius={4}
+              elevation={3}
+            >
+              <Text fontSize="$xs" fontWeight="$semibold" color="$textLight700">
+                {visible.length} {visible.length === 1 ? "Tracker" : "Tracker"}{" "}
+                sichtbar
+              </Text>
+            </Box>
+          )}
+        </Box>
       ) : (
-        <View style={styles.placeholder}>
-          <RNText style={{ fontSize: 16, color: "#666" }}>
-            Karten-Platzhalter (react-native-maps nicht geladen)
-          </RNText>
-        </View>
+        <Box
+          flex={1}
+          bg="$backgroundLight50"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <Text fontSize="$lg" color="$textLight600">
+            🗺️
+          </Text>
+          <Text fontSize="$md" color="$textLight600" mt="$2">
+            Karten-Platzhalter
+          </Text>
+          <Text fontSize="$sm" color="$textLight500" mt="$1">
+            react-native-maps nicht verfügbar
+          </Text>
+        </Box>
       )}
     </Box>
   );
@@ -312,14 +431,23 @@ export default function MapScreen() {
 
 const styles = StyleSheet.create({
   map: {
-    width: Dimensions.get("window").width,
-    height: Dimensions.get("window").height - 80,
+    width: "100%",
+    height: "100%",
   },
-  placeholder: {
-    width: Dimensions.get("window").width,
-    height: Dimensions.get("window").height - 80,
-    backgroundColor: "#f3f4f6",
+  mapButton: {
+    backgroundColor: "white",
+    borderRadius: 28,
+    width: 56,
+    height: 56,
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 5,
+  },
+  mapButtonIcon: {
+    fontSize: 24,
   },
 });

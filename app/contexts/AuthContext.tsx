@@ -10,8 +10,6 @@ import { api } from "../services/api";
 import { closeSocket, getSocket } from "../services/socket";
 import type { Session, User } from "../types/auth";
 
-const MOCK = process.env.EXPO_PUBLIC_MOCK_AUTH === "1";
-
 type AuthCtx = {
   session: Session | null;
   login: (email: string, password: string) => Promise<void>;
@@ -20,34 +18,14 @@ type AuthCtx = {
 
 const Ctx = createContext<AuthCtx | undefined>(undefined);
 
-function makeMockUser(email: string): User {
-  const lower = email.toLowerCase();
-  const role = lower.startsWith("admin")
-    ? "admin"
-    : lower.startsWith("carrier")
-    ? "carrier"
-    : lower.startsWith("supplier")
-    ? "supplier"
-    : lower.startsWith("warehouse")
-    ? "warehouse"
-    : "driver";
-  const companyId =
-    role === "admin" ? "HQ" : role === "supplier" ? "SUP" : "C1";
+// Helper-Funktion um User vom Backend zu normalisieren
+function normalizeUser(user: any): User {
   return {
-    id:
-      role === "admin"
-        ? "2"
-        : role === "carrier"
-        ? "3"
-        : role === "supplier"
-        ? "4"
-        : role === "warehouse"
-        ? "5"
-        : "1",
-    name: `${role[0].toUpperCase()}${role.slice(1)} Mock`,
-    email,
-    companyId,
-    roles: [role as User["roles"][number]],
+    ...user,
+    id: user._id || user.id,
+    companyId: user.company || user.companyId,
+    roles: user.role ? [user.role] : user.roles || [],
+    fullName: user.fullName || `${user.firstName} ${user.lastName}`,
   };
 }
 
@@ -60,42 +38,140 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
     (async () => {
       const token = await SecureStore.getItemAsync("accessToken");
       const userJson = await SecureStore.getItemAsync("user");
+
       if (token && userJson) {
-        const user: User = JSON.parse(userJson);
-        setSession({ user, tokens: { accessToken: token } });
-        if (!MOCK) await getSocket(); // bei Mock kein WS-Auth-Token vorhanden
-      } else if (MOCK) {
-        // Auto-Login als Driver
-        const user = makeMockUser("driver@example.com");
-        setSession({ user, tokens: { accessToken: "mock" } });
+        try {
+          const rawUser = JSON.parse(userJson);
+
+          // Validierung: User muss gültige Daten haben
+          if (
+            !rawUser ||
+            !rawUser._id ||
+            !rawUser.email ||
+            !rawUser.firstName
+          ) {
+            console.warn("Ungültige User-Daten im SecureStore - wird gelöscht");
+            await SecureStore.deleteItemAsync("accessToken");
+            await SecureStore.deleteItemAsync("user");
+            return;
+          }
+
+          const user = normalizeUser(rawUser);
+          setSession({ user, tokens: { accessToken: token } });
+
+          // WebSocket nur bei gültigem Token verbinden
+          if (token !== "mock") {
+            await getSocket();
+          }
+        } catch (error) {
+          console.error("Fehler beim Laden der Session:", error);
+          // Fehler beim Laden der Session - aufräumen
+          await SecureStore.deleteItemAsync("accessToken");
+          await SecureStore.deleteItemAsync("user");
+        }
       }
     })();
   }, []);
 
   const login = async (email: string, password: string) => {
-    if (MOCK) {
-      const user = makeMockUser(email || "driver@example.com");
-      await SecureStore.setItemAsync("accessToken", "mock");
-      await SecureStore.setItemAsync("user", JSON.stringify(user));
-      setSession({ user, tokens: { accessToken: "mock" } });
-      return; // kein Socket-Connect ohne echtes Token
+    // Backend verwendet /api/v1/users/login
+    console.log("📤 Sending login request...");
+    const res = await api.post("/users/login", { email, password });
+
+    console.log("📥 Backend Response:", JSON.stringify(res.data, null, 2));
+    console.log("📥 Response Keys:", Object.keys(res.data));
+
+    const data = res.data;
+
+    // Backend kann verschiedene Formate zurückgeben:
+    // Option 1: { accessToken, user }
+    // Option 2: { token, user }
+    // Option 3: { user, token }
+    // Option 4: Direktes User-Objekt mit token darin
+
+    let accessToken: string | undefined;
+    let rawUser: any;
+
+    // Token finden
+    if (data.accessToken) {
+      accessToken = data.accessToken;
+    } else if (data.token) {
+      accessToken = data.token;
+    } else if (data.data?.token) {
+      accessToken = data.data.token;
+    } else if (data.data?.accessToken) {
+      accessToken = data.data.accessToken;
     }
-    const res = await api.post("/auth/login", { email, password });
-    const { accessToken, user } = res.data as {
-      accessToken: string;
-      user: User;
-    };
+
+    // User finden
+    if (data.user) {
+      rawUser = data.user;
+    } else if (data.data?.user) {
+      rawUser = data.data.user;
+    } else if (data.data && !data.user && !data.token && !data.accessToken) {
+      // Manchmal ist data.data das User-Objekt
+      rawUser = data.data;
+    } else if (!data.user && !data.data) {
+      // Manchmal ist data direkt das User-Objekt
+      rawUser = data;
+    }
+
+    console.log(
+      "🔑 Extracted Token:",
+      accessToken ? "✅ Found" : "❌ Not found"
+    );
+    console.log("👤 Extracted User:", rawUser ? "✅ Found" : "❌ Not found");
+    console.log("👤 User Data:", JSON.stringify(rawUser, null, 2));
+
+    if (!accessToken) {
+      console.error("❌ Kein Token gefunden in Response:", data);
+      throw new Error(
+        "Kein Access Token vom Server erhalten. Prüfe Backend-Response-Format."
+      );
+    }
+
+    if (!rawUser) {
+      console.error("❌ Kein User gefunden in Response:", data);
+      throw new Error(
+        "Keine Benutzerdaten vom Server erhalten. Prüfe Backend-Response-Format."
+      );
+    }
+
+    // User-Daten normalisieren
+    const user = normalizeUser(rawUser);
+    console.log(
+      "✅ Normalized User:",
+      user.email,
+      user.firstName,
+      user.lastName
+    );
+
+    // Tokens speichern
     await SecureStore.setItemAsync("accessToken", accessToken);
     await SecureStore.setItemAsync("user", JSON.stringify(user));
+
     setSession({ user, tokens: { accessToken } });
+
+    // WebSocket-Verbindung aufbauen
     await getSocket();
   };
 
   const logout = async () => {
-    await SecureStore.deleteItemAsync("accessToken");
-    await SecureStore.deleteItemAsync("user");
-    setSession(null);
-    closeSocket();
+    try {
+      // Session sofort auf null setzen
+      setSession(null);
+
+      // WebSocket schließen
+      closeSocket();
+
+      // SecureStore aufräumen
+      await SecureStore.deleteItemAsync("accessToken");
+      await SecureStore.deleteItemAsync("user");
+    } catch (error) {
+      console.error("Fehler beim Logout:", error);
+      // Auch bei Fehler Session löschen
+      setSession(null);
+    }
   };
 
   const value = useMemo(() => ({ session, login, logout }), [session]);

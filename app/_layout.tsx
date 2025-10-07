@@ -6,9 +6,9 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import "react-native-reanimated";
 
 import { useColorScheme } from "@/components/useColorScheme";
@@ -17,7 +17,7 @@ import { useColorScheme } from "@/components/useColorScheme";
 import { config } from "@gluestack-ui/config";
 import { GluestackUIProvider } from "@gluestack-ui/themed";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider } from "../app/contexts/AuthContext";
+import { AuthProvider, useAuth } from "../app/contexts/AuthContext";
 import { LocationProvider } from "../app/contexts/LocationContext";
 
 // Tasks (Side-Effect Registrations)
@@ -54,30 +54,84 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  // Dieser Hook wird jetzt in JEDER Renderphase der Komponente aufgerufen
   const colorScheme = useColorScheme();
 
   return (
     <GluestackUIProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <LocationProvider>
-            <ThemeProvider
-              value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-            >
-              <Stack>
-                <Stack.Screen name="login" options={{ headerShown: false }} />
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="admin" options={{ title: "Admin" }} />
-                <Stack.Screen
-                  name="modal"
-                  options={{ presentation: "modal", title: "Info" }}
-                />
-              </Stack>
-            </ThemeProvider>
-          </LocationProvider>
+          <NavigationWrapper>
+            <LocationProvider>
+              <ThemeProvider
+                value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+              >
+                <Stack>
+                  <Stack.Screen name="login" options={{ headerShown: false }} />
+                  <Stack.Screen
+                    name="register"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="clear-storage"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(tabs)"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen name="admin" options={{ title: "Admin" }} />
+                  <Stack.Screen
+                    name="modal"
+                    options={{ presentation: "modal", title: "Info" }}
+                  />
+                </Stack>
+              </ThemeProvider>
+            </LocationProvider>
+          </NavigationWrapper>
         </AuthProvider>
       </QueryClientProvider>
     </GluestackUIProvider>
   );
+}
+
+// Navigation Guard Component
+function NavigationWrapper({ children }: { children: React.ReactNode }) {
+  const { session } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+  const [isNavigationReady, setNavigationReady] = React.useState(false);
+
+  React.useEffect(() => {
+    setNavigationReady(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (!isNavigationReady) return;
+
+    const inAuthGroup =
+      segments[0] === "(tabs)" ||
+      segments[0] === "admin" ||
+      segments[0] === "modal";
+
+    console.log("Navigation Check:", {
+      hasSession: !!session,
+      inAuthGroup,
+      segments,
+    });
+
+    if (!session && inAuthGroup) {
+      // Nicht eingeloggt aber auf geschützter Route -> Login
+      console.log("Redirecting to login - no session");
+      router.replace("/login" as any);
+    } else if (
+      session &&
+      (segments[0] === "login" || segments[0] === "register")
+    ) {
+      // Eingeloggt aber auf Login/Register -> App
+      console.log("Redirecting to app - has session");
+      router.replace("/(tabs)" as any);
+    }
+  }, [session, segments, isNavigationReady]);
+
+  return <>{children}</>;
 }

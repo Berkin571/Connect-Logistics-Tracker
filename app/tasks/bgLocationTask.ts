@@ -23,7 +23,8 @@ async function flushQueue(token: string) {
   const arr: any[] = JSON.parse(raw);
   if (arr.length === 0) return;
   try {
-    await fetch(`${API_URL}/locations/bulk`, {
+    // Backend Route: /api/v1/gps/locations/bulk
+    await fetch(`${API_URL}/gps/locations/bulk`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -63,7 +64,8 @@ TaskManager.defineTask(BG_LOCATION_TASK, async ({ data, error }) => {
   };
 
   try {
-    await fetch(`${API_URL}/locations/ingest`, {
+    // Backend Route: /api/v1/gps/locations/ingest
+    await fetch(`${API_URL}/gps/locations/ingest`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
