@@ -96,10 +96,19 @@ export const LocationProvider: React.FC<React.PropsWithChildren> = ({
 
   const refreshGeofences = useCallback(async () => {
     if (!session) return;
-    const res = await api.get(`/geofences?companyId=${session.user.companyId}`);
-    const list = res.data as GeofenceRegion[];
-    setGeofences(list);
-    if (background) await startGeofencing(list);
+    try {
+      const res = await api.get(
+        `/geofences?companyId=${session.user.companyId}`
+      );
+      const list = Array.isArray(res.data) ? res.data : res.data?.data || [];
+      console.log("✅ Geofences geladen:", list.length);
+      setGeofences(list);
+      if (background && list.length > 0) await startGeofencing(list);
+    } catch (error) {
+      console.warn("⚠️ Geofences konnten nicht geladen werden:", error);
+      // Ignorieren - Geofences sind optional, leeres Array setzen
+      setGeofences([]);
+    }
   }, [session, background]);
 
   useEffect(() => {

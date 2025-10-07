@@ -43,13 +43,14 @@ export default function Login() {
       console.error("Response:", e?.response);
       console.error("Response Data:", e?.response?.data);
       console.error("Status:", e?.response?.status);
-      
+
       let errorMsg = "Login fehlgeschlagen.";
-      
+
       if (e?.response?.status === 401) {
         errorMsg = "E-Mail oder Passwort falsch.";
       } else if (e?.response?.status === 403) {
-        errorMsg = "Ihr Account muss noch von einem Administrator genehmigt werden.";
+        errorMsg =
+          "Ihr Account muss noch von einem Administrator genehmigt werden.";
       } else if (e?.response?.data?.message) {
         errorMsg = e.response.data.message;
       } else if (e?.response?.data?.error) {
@@ -59,7 +60,7 @@ export default function Login() {
       } else if (e?.message) {
         errorMsg = e.message;
       }
-      
+
       setError(errorMsg);
     } finally {
       setLoading(false);
@@ -191,7 +192,7 @@ export default function Login() {
             {/* Footer */}
             <Center mt="$8">
               <Text size="xs" color="$textLight500">
-                © 2025 Connect Logistics Tracker
+                © 2025 Connect Logistics
               </Text>
               <Text size="xs" color="$textLight500" mt="$1">
                 Alle Rechte vorbehalten

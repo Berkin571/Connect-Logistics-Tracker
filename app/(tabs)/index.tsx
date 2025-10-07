@@ -316,16 +316,17 @@ export default function MapScreen() {
             })}
 
             {/* Geofences */}
-            {geofences.map((g) => (
-              <Circle
-                key={`gf-${g.id}`}
-                center={{ latitude: g.lat, longitude: g.lng }}
-                radius={g.radius}
-                strokeColor="rgba(59, 130, 246, 0.8)"
-                fillColor="rgba(59, 130, 246, 0.2)"
-                strokeWidth={2}
-              />
-            ))}
+            {Array.isArray(geofences) &&
+              geofences.map((g) => (
+                <Circle
+                  key={`gf-${g.id}`}
+                  center={{ latitude: g.lat, longitude: g.lng }}
+                  radius={g.radius}
+                  strokeColor="rgba(59, 130, 246, 0.8)"
+                  fillColor="rgba(59, 130, 246, 0.2)"
+                  strokeWidth={2}
+                />
+              ))}
 
             {/* Fallback: falls (noch) kein Server-Marker für mich existiert, zeige lokalen Marker */}
             {!visible.some(

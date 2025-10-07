@@ -9,6 +9,7 @@ import React, {
 import { api } from "../services/api";
 import { closeSocket, getSocket } from "../services/socket";
 import type { Session, User } from "../types/auth";
+import { Env } from "../utils/env";
 
 type AuthCtx = {
   session: Session | null;
@@ -75,11 +76,18 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
 
   const login = async (email: string, password: string) => {
     // Backend verwendet /api/v1/users/login
-    console.log("📤 Sending login request...");
+    console.log("📤 Sending login request to:", Env.API_URL);
+    console.log("📤 Email:", email);
+
     const res = await api.post("/users/login", { email, password });
 
+    console.log("📥 Backend Response Status:", res.status);
+    console.log("📥 Backend Response Type:", typeof res.data);
     console.log("📥 Backend Response:", JSON.stringify(res.data, null, 2));
-    console.log("📥 Response Keys:", Object.keys(res.data));
+    console.log(
+      "📥 Response Keys:",
+      res.data ? Object.keys(res.data) : "NO DATA"
+    );
 
     const data = res.data;
 
