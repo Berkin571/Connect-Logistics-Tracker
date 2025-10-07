@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Connect-Logistics-Tracker",
-    "slug": "Connect-Logistics-Tracker",
+    "slug": "connect-logistik-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -22,7 +22,9 @@
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Die App nutzt Ihren Standort, um Fahrten und Lieferungen anzuzeigen.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Die App verfolgt Ihren Standort im Hintergrund, um Live-Tracking und Geofencing zu ermöglichen.",
-        "UIBackgroundModes": ["location"]
+        "UIBackgroundModes": [
+          "location"
+        ]
       }
     },
     "android": {
@@ -37,10 +39,17 @@
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION",
-        "FOREGROUND_SERVICE"
+        "FOREGROUND_SERVICE",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_LOCATION"
       ],
       "config": {
-        "googleMaps": { "apiKey": "${EXPO_PUBLIC_GMAPS_API_KEY}" }
+        "googleMaps": {
+          "apiKey": "${EXPO_PUBLIC_GMAPS_API_KEY}"
+        }
       }
     },
     "web": {
@@ -63,6 +72,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "9bd5e50d-722a-43d3-9455-9134df638e87"
+      }
+    },
+    "owner": "koricode"
   }
 }
