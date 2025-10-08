@@ -18,6 +18,7 @@ import { config } from "@gluestack-ui/config";
 import { GluestackUIProvider } from "@gluestack-ui/themed";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "../app/contexts/AuthContext";
+import { CompanyProvider } from "../app/contexts/CompanyContext";
 import { LocationProvider } from "../app/contexts/LocationContext";
 
 // Tasks (Side-Effect Registrations)
@@ -61,32 +62,37 @@ function RootLayoutNav() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <NavigationWrapper>
-            <LocationProvider>
-              <ThemeProvider
-                value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-              >
-                <Stack>
-                  <Stack.Screen name="login" options={{ headerShown: false }} />
-                  <Stack.Screen
-                    name="register"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="clear-storage"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="(tabs)"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen name="admin" options={{ title: "Admin" }} />
-                  <Stack.Screen
-                    name="modal"
-                    options={{ presentation: "modal", title: "Info" }}
-                  />
-                </Stack>
-              </ThemeProvider>
-            </LocationProvider>
+            <CompanyProvider>
+              <LocationProvider>
+                <ThemeProvider
+                  value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+                >
+                  <Stack>
+                    <Stack.Screen
+                      name="login"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="register"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="clear-storage"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="(tabs)"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen name="admin" options={{ title: "Admin" }} />
+                    <Stack.Screen
+                      name="modal"
+                      options={{ presentation: "modal", title: "Info" }}
+                    />
+                  </Stack>
+                </ThemeProvider>
+              </LocationProvider>
+            </CompanyProvider>
           </NavigationWrapper>
         </AuthProvider>
       </QueryClientProvider>
