@@ -15,6 +15,7 @@ import {
   VStack,
 } from "@gluestack-ui/themed";
 import React, { useEffect, useState } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../services/api";
 import {
@@ -86,211 +87,211 @@ export default function FreightsScreen() {
   }
 
   return (
-    <Box flex={1} bg="$backgroundLight0">
-      {/* Header */}
-      <Box
-        px="$4"
-        py="$4"
-        bg="$white"
-        borderBottomWidth={1}
-        borderBottomColor="$borderLight200"
-        shadowColor="$black"
-        shadowOffset={{ width: 0, height: 2 }}
-        shadowOpacity={0.05}
-        shadowRadius={4}
-        elevation={2}
-      >
-        <VStack space="md">
-          <Heading size="xl" color="$textLight900">
-            🚚 Frachten
-          </Heading>
-
-          {/* Statistics */}
-          <HStack space="sm">
-            <Box
-              flex={1}
-              bg="$blue50"
-              borderRadius="$lg"
-              p="$3"
-              borderWidth={1}
-              borderColor="$blue200"
-            >
-              <Text fontSize="$2xl" fontWeight="$bold" color="$blue600">
-                {freights.length}
-              </Text>
-              <Text fontSize="$xs" color="$blue700">
-                Gesamt
-              </Text>
-            </Box>
-            <Box
-              flex={1}
-              bg="$green50"
-              borderRadius="$lg"
-              p="$3"
-              borderWidth={1}
-              borderColor="$green200"
-            >
-              <Text fontSize="$2xl" fontWeight="$bold" color="$green600">
-                {inMotionCount}
-              </Text>
-              <Text fontSize="$xs" color="$green700">
-                Unterwegs
-              </Text>
-            </Box>
-            <Box
-              flex={1}
-              bg="$amber50"
-              borderRadius="$lg"
-              p="$3"
-              borderWidth={1}
-              borderColor="$amber200"
-            >
-              <Text fontSize="$2xl" fontWeight="$bold" color="$amber600">
-                {activeCount}
-              </Text>
-              <Text fontSize="$xs" color="$amber700">
-                Aktiv
-              </Text>
-            </Box>
-          </HStack>
-
-          {/* Filter Buttons */}
-          <HStack space="sm">
-            <FilterButton
-              label="Alle"
-              active={filter === "all"}
-              onPress={() => setFilter("all")}
-              count={freights.length}
-            />
-            <FilterButton
-              label="Aktiv"
-              active={filter === "active"}
-              onPress={() => setFilter("active")}
-              count={activeCount}
-            />
-            <FilterButton
-              label="Unterwegs"
-              active={filter === "in_motion"}
-              onPress={() => setFilter("in_motion")}
-              count={inMotionCount}
-            />
-          </HStack>
-        </VStack>
-      </Box>
-
-      {/* Content */}
-      <ScrollView
-        flex={1}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => loadFreights(true)}
-          />
-        }
-      >
-        <VStack space="md" p="$4" pb="$8">
-          {loading ? (
-            <Box py="$8" alignItems="center">
-              <Spinner size="large" color="$blue600" />
-              <Text mt="$4" color="$textLight600">
-                Frachten werden geladen...
-              </Text>
-            </Box>
-          ) : error ? (
-            <Box
-              bg="$red50"
-              borderWidth={1}
-              borderColor="$red300"
-              borderRadius="$lg"
-              p="$4"
-            >
-              <Text color="$red600" fontWeight="$semibold">
-                ❌ Fehler
-              </Text>
-              <Text color="$red600" fontSize="$sm" mt="$1">
-                {error}
-              </Text>
-              <Button
-                mt="$3"
-                size="sm"
-                variant="outline"
-                action="negative"
-                onPress={() => loadFreights()}
-              >
-                <ButtonText>Erneut versuchen</ButtonText>
-              </Button>
-            </Box>
-          ) : filteredFreights.length === 0 ? (
-            <Box py="$8" alignItems="center">
-              <Text fontSize="$4xl" mb="$2">
-                📦
-              </Text>
-              <Text fontSize="$lg" fontWeight="$semibold" color="$textLight900">
-                Keine Frachten
-              </Text>
-              <Text
-                fontSize="$sm"
-                color="$textLight600"
-                textAlign="center"
-                mt="$1"
-              >
-                {filter === "all"
-                  ? "Es sind noch keine Frachten vorhanden"
-                  : filter === "active"
-                  ? "Keine aktiven Frachten"
-                  : "Keine Frachten unterwegs"}
-              </Text>
-            </Box>
-          ) : (
-            filteredFreights.map((freight) => (
-              <FreightCard key={freight._id} freight={freight} />
-            ))
-          )}
-        </VStack>
-      </ScrollView>
-    </Box>
-  );
-}
-
-// Filter Button Component
-function FilterButton({
-  label,
-  active,
-  onPress,
-  count,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-  count: number;
-}) {
-  return (
-    <Pressable onPress={onPress} flex={1}>
-      <Box
-        py="$2"
-        px="$3"
-        borderRadius="$lg"
-        bg={active ? "$blue600" : "$white"}
-        borderWidth={1}
-        borderColor={active ? "$blue600" : "$borderLight200"}
-        alignItems="center"
-      >
-        <Text
-          fontSize="$sm"
-          fontWeight="$semibold"
-          color={active ? "$white" : "$textLight700"}
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: "#f9fafb" }}
+      edges={["top"]}
+    >
+      <Box flex={1} bg="$backgroundLight0">
+        {/* Header */}
+        <Box
+          px="$4"
+          py="$4"
+          bg="$white"
+          borderBottomWidth={1}
+          borderBottomColor="$borderLight200"
+          shadowColor="$black"
+          shadowOffset={{ width: 0, height: 2 }}
+          shadowOpacity={0.05}
+          shadowRadius={4}
+          elevation={2}
         >
-          {label}
-        </Text>
-        <Text
-          fontSize="$xs"
-          color={active ? "$blue100" : "$textLight500"}
-          mt="$0.5"
+          <VStack space="md">
+            <Heading size="xl" color="$textLight900">
+              🚚 Frachten
+            </Heading>
+
+            {/* Clickable Statistics / Filter */}
+            <HStack space="sm">
+              <Pressable onPress={() => setFilter("all")} flex={1}>
+                <Box
+                  flex={1}
+                  bg={filter === "all" ? "$blue600" : "$blue50"}
+                  borderRadius="$lg"
+                  p="$3"
+                  borderWidth={2}
+                  borderColor={filter === "all" ? "$blue600" : "$blue200"}
+                  shadowColor={filter === "all" ? "$blue600" : "$black"}
+                  shadowOffset={{ width: 0, height: filter === "all" ? 3 : 1 }}
+                  shadowOpacity={filter === "all" ? 0.3 : 0.1}
+                  shadowRadius={filter === "all" ? 6 : 2}
+                  elevation={filter === "all" ? 4 : 1}
+                >
+                  <Text
+                    fontSize="$2xl"
+                    fontWeight="$bold"
+                    color={filter === "all" ? "$white" : "$blue600"}
+                  >
+                    {freights.length}
+                  </Text>
+                  <Text
+                    fontSize="$xs"
+                    fontWeight="$semibold"
+                    color={filter === "all" ? "$blue100" : "$blue700"}
+                  >
+                    Gesamt
+                  </Text>
+                </Box>
+              </Pressable>
+
+              <Pressable onPress={() => setFilter("in_motion")} flex={1}>
+                <Box
+                  flex={1}
+                  bg={filter === "in_motion" ? "$green600" : "$green50"}
+                  borderRadius="$lg"
+                  p="$3"
+                  borderWidth={2}
+                  borderColor={
+                    filter === "in_motion" ? "$green600" : "$green200"
+                  }
+                  shadowColor={filter === "in_motion" ? "$green600" : "$black"}
+                  shadowOffset={{
+                    width: 0,
+                    height: filter === "in_motion" ? 3 : 1,
+                  }}
+                  shadowOpacity={filter === "in_motion" ? 0.3 : 0.1}
+                  shadowRadius={filter === "in_motion" ? 6 : 2}
+                  elevation={filter === "in_motion" ? 4 : 1}
+                >
+                  <Text
+                    fontSize="$2xl"
+                    fontWeight="$bold"
+                    color={filter === "in_motion" ? "$white" : "$green600"}
+                  >
+                    {inMotionCount}
+                  </Text>
+                  <Text
+                    fontSize="$xs"
+                    fontWeight="$semibold"
+                    color={filter === "in_motion" ? "$green100" : "$green700"}
+                  >
+                    Unterwegs
+                  </Text>
+                </Box>
+              </Pressable>
+
+              <Pressable onPress={() => setFilter("active")} flex={1}>
+                <Box
+                  flex={1}
+                  bg={filter === "active" ? "$amber600" : "$amber50"}
+                  borderRadius="$lg"
+                  p="$3"
+                  borderWidth={2}
+                  borderColor={filter === "active" ? "$amber600" : "$amber200"}
+                  shadowColor={filter === "active" ? "$amber600" : "$black"}
+                  shadowOffset={{
+                    width: 0,
+                    height: filter === "active" ? 3 : 1,
+                  }}
+                  shadowOpacity={filter === "active" ? 0.3 : 0.1}
+                  shadowRadius={filter === "active" ? 6 : 2}
+                  elevation={filter === "active" ? 4 : 1}
+                >
+                  <Text
+                    fontSize="$2xl"
+                    fontWeight="$bold"
+                    color={filter === "active" ? "$white" : "$amber600"}
+                  >
+                    {activeCount}
+                  </Text>
+                  <Text
+                    fontSize="$xs"
+                    fontWeight="$semibold"
+                    color={filter === "active" ? "$amber100" : "$amber700"}
+                  >
+                    Aktiv
+                  </Text>
+                </Box>
+              </Pressable>
+            </HStack>
+          </VStack>
+        </Box>
+
+        {/* Content */}
+        <ScrollView
+          flex={1}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => loadFreights(true)}
+            />
+          }
         >
-          {count}
-        </Text>
+          <VStack space="md" p="$4" pb="$8">
+            {loading ? (
+              <Box py="$8" alignItems="center">
+                <Spinner size="large" color="$blue600" />
+                <Text mt="$4" color="$textLight600">
+                  Frachten werden geladen...
+                </Text>
+              </Box>
+            ) : error ? (
+              <Box
+                bg="$red50"
+                borderWidth={1}
+                borderColor="$red300"
+                borderRadius="$lg"
+                p="$4"
+              >
+                <Text color="$red600" fontWeight="$semibold">
+                  ❌ Fehler
+                </Text>
+                <Text color="$red600" fontSize="$sm" mt="$1">
+                  {error}
+                </Text>
+                <Button
+                  mt="$3"
+                  size="sm"
+                  variant="outline"
+                  action="negative"
+                  onPress={() => loadFreights()}
+                >
+                  <ButtonText>Erneut versuchen</ButtonText>
+                </Button>
+              </Box>
+            ) : filteredFreights.length === 0 ? (
+              <Box py="$8" alignItems="center">
+                <Text fontSize="$4xl" mb="$2">
+                  📦
+                </Text>
+                <Text
+                  fontSize="$lg"
+                  fontWeight="$semibold"
+                  color="$textLight900"
+                >
+                  Keine Frachten
+                </Text>
+                <Text
+                  fontSize="$sm"
+                  color="$textLight600"
+                  textAlign="center"
+                  mt="$1"
+                >
+                  {filter === "all"
+                    ? "Es sind noch keine Frachten vorhanden"
+                    : filter === "active"
+                    ? "Keine aktiven Frachten"
+                    : "Keine Frachten unterwegs"}
+                </Text>
+              </Box>
+            ) : (
+              filteredFreights.map((freight) => (
+                <FreightCard key={freight._id} freight={freight} />
+              ))
+            )}
+          </VStack>
+        </ScrollView>
       </Box>
-    </Pressable>
+    </SafeAreaView>
   );
 }
 
