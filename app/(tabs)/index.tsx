@@ -326,6 +326,15 @@ export default function MapScreen() {
                 );
                 const companyName = getCompanyName(l.companyId);
 
+                // Debug: Log für eigene Position
+                console.log("🔍 Marker Debug:", {
+                  lUserId: l.userId,
+                  sessionUserId: session?.user.id,
+                  sessionUser_Id: session?.user._id,
+                  isMe: isMe,
+                  lName: l.name,
+                });
+
                 return (
                   <Marker
                     key={`${l.userId}-${l.point.timestamp}`}
@@ -344,7 +353,9 @@ export default function MapScreen() {
                             marginBottom: 8,
                           }}
                         >
-                          {l.name || "Unbekannter Nutzer"}
+                          {isMe
+                            ? "Deine Position"
+                            : l.name || "Unbekannter Nutzer"}
                         </RNText>
                         <View style={{ marginBottom: 4 }}>
                           <RNText style={{ fontSize: 12, color: "#666" }}>
@@ -473,7 +484,7 @@ export default function MapScreen() {
             <Box position="absolute" right={16} bottom={20}>
               {/* Center on Me Button */}
               <Pressable onPress={centerOnMe} style={styles.mapButton}>
-                <RNText style={styles.mapButtonIcon}>📍</RNText>
+                <RNText style={[styles.mapButtonIcon]}>📍</RNText>
               </Pressable>
             </Box>
 

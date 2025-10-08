@@ -74,7 +74,7 @@ export default function ProfileScreen() {
         <VStack space="lg" pb="$6">
           {/* Header mit Avatar */}
           <Box
-            bg="$blue600"
+            bg="$blue800"
             pt="$16"
             pb="$8"
             px="$6"
@@ -84,7 +84,7 @@ export default function ProfileScreen() {
             <VStack space="md" alignItems="center">
               <Avatar
                 size="2xl"
-                bg="$blue500"
+                bg="$blue700"
                 borderWidth={4}
                 borderColor="$white"
               >
