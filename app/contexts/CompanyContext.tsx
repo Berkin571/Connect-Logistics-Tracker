@@ -31,34 +31,86 @@ export const CompanyProvider: React.FC<React.PropsWithChildren> = ({
     try {
       setLoading(true);
       console.log("🏢 Loading companies...");
-      const res = await api.get("/companies");
+      console.log(
+        "👤 Session user company:",
+        session.user.company || session.user.companyId
+      );
+
+      // Versuche verschiedene Endpoints
+      let res;
+      let endpoint = "";
+
+      try {
+        endpoint = "/companies/search";
+        console.log("🔄 Trying:", endpoint);
+        res = await api.get(endpoint);
+      } catch (searchErr: any) {
+        console.log("❌ /companies/search failed:", searchErr.response?.status);
+        try {
+          endpoint = "/companies";
+          console.log("🔄 Trying:", endpoint);
+          res = await api.get(endpoint);
+        } catch (companiesErr: any) {
+          console.log("❌ /companies failed:", companiesErr.response?.status);
+          throw companiesErr;
+        }
+      }
+
       const data = Array.isArray(res.data) ? res.data : res.data?.data || [];
+      console.log(
+        "📊 Raw response from",
+        endpoint,
+        ":",
+        data.length,
+        "companies"
+      );
 
       const companyMap = new Map<string, Company>();
       data.forEach((company: Company) => {
-        companyMap.set(company._id, company);
+        if (company._id && company.name) {
+          companyMap.set(company._id, company);
+          console.log("📝 Mapped:", company._id, "→", company.name);
+        } else {
+          console.warn("⚠️ Invalid company data:", company);
+        }
       });
 
       setCompanies(companyMap);
       console.log("✅ Companies loaded:", companyMap.size);
+
+      // Debug: Zeige alle geladenen Companies
+      companyMap.forEach((company, id) => {
+        console.log("📋 Company:", id, "→", company.name);
+      });
     } catch (error: any) {
-      // Falls keine Berechtigung für /companies, versuche einzelne Company zu laden
-      if (error?.response?.status === 403 && session.user.company) {
+      console.log("❌ All company endpoints failed:", error.response?.status);
+
+      // Fallback: Versuche eigene Company zu laden
+      const userCompanyId = session.user.company || session.user.companyId;
+      if (userCompanyId) {
         try {
-          console.log(
-            "⚠️ Keine Berechtigung für alle Companies, lade eigene Company..."
-          );
-          const res = await api.get(`/companies/${session.user.company}`);
+          console.log("🔄 Fallback: Loading own company:", userCompanyId);
+          const res = await api.get(`/companies/${userCompanyId}`);
           const company = res.data;
-          const companyMap = new Map<string, Company>();
-          companyMap.set(company._id, company);
-          setCompanies(companyMap);
-          console.log("✅ Company loaded:", company.name);
-        } catch (err) {
-          console.warn("⚠️ Company konnte nicht geladen werden:", err);
+
+          if (company._id && company.name) {
+            const companyMap = new Map<string, Company>();
+            companyMap.set(company._id, company);
+            setCompanies(companyMap);
+            console.log(
+              "✅ Own company loaded:",
+              company._id,
+              "→",
+              company.name
+            );
+          } else {
+            console.warn("⚠️ Invalid own company data:", company);
+          }
+        } catch (err: any) {
+          console.warn("⚠️ Could not load own company:", err.response?.status);
         }
       } else {
-        console.warn("⚠️ Companies konnten nicht geladen werden:", error);
+        console.warn("⚠️ No company ID in user session");
       }
     } finally {
       setLoading(false);
@@ -73,8 +125,16 @@ export const CompanyProvider: React.FC<React.PropsWithChildren> = ({
 
   const getCompanyName = useCallback(
     (companyId: string): string => {
+      if (!companyId) return "Unbekannt";
       const company = companies.get(companyId);
-      return company?.name || company?.displayName || companyId;
+      const name = company?.name || company?.displayName;
+      console.log(
+        "🔍 getCompanyName:",
+        companyId,
+        "→",
+        name || "NICHT GEFUNDEN"
+      );
+      return name || companyId;
     },
     [companies]
   );
