@@ -15,6 +15,7 @@ import {
   VStack,
 } from "@gluestack-ui/themed";
 import React, { useEffect, useState } from "react";
+import { Text as RNText } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../services/api";
@@ -112,7 +113,7 @@ export default function FreightsScreen() {
 
             {/* Clickable Statistics / Filter */}
             <HStack space="sm">
-              <Pressable onPress={() => setFilter("all")} flex={1}>
+              <Pressable onPress={() => setFilter("all")} style={{ flex: 1 }}>
                 <Box
                   flex={1}
                   bg={filter === "all" ? "$blue600" : "$blue50"}
@@ -125,25 +126,38 @@ export default function FreightsScreen() {
                   shadowOpacity={filter === "all" ? 0.3 : 0.1}
                   shadowRadius={filter === "all" ? 6 : 2}
                   elevation={filter === "all" ? 4 : 1}
+                  alignItems="center"
+                  justifyContent="center"
+                  minHeight={80}
                 >
-                  <Text
-                    fontSize="$2xl"
-                    fontWeight="$bold"
-                    color={filter === "all" ? "$white" : "$blue600"}
+                  <RNText
+                    style={{
+                      fontSize: 24,
+                      fontWeight: "bold",
+                      color: filter === "all" ? "#ffffff" : "#2563eb",
+                      textAlign: "center",
+                      marginBottom: 4,
+                    }}
                   >
                     {freights.length}
-                  </Text>
-                  <Text
-                    fontSize="$xs"
-                    fontWeight="$semibold"
-                    color={filter === "all" ? "$blue100" : "$blue700"}
+                  </RNText>
+                  <RNText
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "bold",
+                      color: filter === "all" ? "#ffffff" : "#1e40af",
+                      textAlign: "center",
+                    }}
                   >
-                    Gesamt
-                  </Text>
+                    Alle
+                  </RNText>
                 </Box>
               </Pressable>
 
-              <Pressable onPress={() => setFilter("in_motion")} flex={1}>
+              <Pressable
+                onPress={() => setFilter("in_motion")}
+                style={{ flex: 1 }}
+              >
                 <Box
                   flex={1}
                   bg={filter === "in_motion" ? "$green600" : "$green50"}
@@ -161,25 +175,38 @@ export default function FreightsScreen() {
                   shadowOpacity={filter === "in_motion" ? 0.3 : 0.1}
                   shadowRadius={filter === "in_motion" ? 6 : 2}
                   elevation={filter === "in_motion" ? 4 : 1}
+                  alignItems="center"
+                  justifyContent="center"
+                  minHeight={80}
                 >
-                  <Text
-                    fontSize="$2xl"
-                    fontWeight="$bold"
-                    color={filter === "in_motion" ? "$white" : "$green600"}
+                  <RNText
+                    style={{
+                      fontSize: 24,
+                      fontWeight: "bold",
+                      color: filter === "in_motion" ? "#ffffff" : "#16a34a",
+                      textAlign: "center",
+                      marginBottom: 4,
+                    }}
                   >
                     {inMotionCount}
-                  </Text>
-                  <Text
-                    fontSize="$xs"
-                    fontWeight="$semibold"
-                    color={filter === "in_motion" ? "$green100" : "$green700"}
+                  </RNText>
+                  <RNText
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "bold",
+                      color: filter === "in_motion" ? "#ffffff" : "#166534",
+                      textAlign: "center",
+                    }}
                   >
                     Unterwegs
-                  </Text>
+                  </RNText>
                 </Box>
               </Pressable>
 
-              <Pressable onPress={() => setFilter("active")} flex={1}>
+              <Pressable
+                onPress={() => setFilter("active")}
+                style={{ flex: 1 }}
+              >
                 <Box
                   flex={1}
                   bg={filter === "active" ? "$amber600" : "$amber50"}
@@ -195,21 +222,31 @@ export default function FreightsScreen() {
                   shadowOpacity={filter === "active" ? 0.3 : 0.1}
                   shadowRadius={filter === "active" ? 6 : 2}
                   elevation={filter === "active" ? 4 : 1}
+                  alignItems="center"
+                  justifyContent="center"
+                  minHeight={80}
                 >
-                  <Text
-                    fontSize="$2xl"
-                    fontWeight="$bold"
-                    color={filter === "active" ? "$white" : "$amber600"}
+                  <RNText
+                    style={{
+                      fontSize: 24,
+                      fontWeight: "bold",
+                      color: filter === "active" ? "#ffffff" : "#d97706",
+                      textAlign: "center",
+                      marginBottom: 4,
+                    }}
                   >
                     {activeCount}
-                  </Text>
-                  <Text
-                    fontSize="$xs"
-                    fontWeight="$semibold"
-                    color={filter === "active" ? "$amber100" : "$amber700"}
+                  </RNText>
+                  <RNText
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "bold",
+                      color: filter === "active" ? "#ffffff" : "#d97706",
+                      textAlign: "center",
+                    }}
                   >
                     Aktiv
-                  </Text>
+                  </RNText>
                 </Box>
               </Pressable>
             </HStack>
@@ -226,7 +263,7 @@ export default function FreightsScreen() {
             />
           }
         >
-          <VStack space="md" p="$4" pb="$8">
+          <VStack space="md" p="$4" pt="$16" pb="$8">
             {loading ? (
               <Box py="$8" alignItems="center">
                 <Spinner size="large" color="$blue600" />
@@ -333,30 +370,26 @@ function FreightCard({ freight }: { freight: Freight }) {
         borderColor={inMotion ? "$green500" : "$borderLight200"}
         position="relative"
       >
-        {/* In Motion Badge */}
+        {/* In Motion Badge - nur Icon, kein Text */}
         {inMotion && (
           <Box
             position="absolute"
-            top={-8}
-            right={16}
+            top={-15}
+            right={155}
             bg="$green600"
-            px="$3"
-            py="$1"
+            w={40}
+            h={40}
             borderRadius="$full"
             shadowColor="$green600"
             shadowOffset={{ width: 0, height: 2 }}
             shadowOpacity={0.4}
             shadowRadius={4}
-            elevation={3}
+            elevation={5}
+            zIndex={10}
+            alignItems="center"
+            justifyContent="center"
           >
-            <HStack space="xs" alignItems="center">
-              <Text fontSize="$sm" color="$white">
-                🚚
-              </Text>
-              <Text fontSize="$xs" fontWeight="$bold" color="$white">
-                UNTERWEGS
-              </Text>
-            </HStack>
+            <Text fontSize={20}>🚚</Text>
           </Box>
         )}
 
@@ -412,7 +445,7 @@ function FreightCard({ freight }: { freight: Freight }) {
             <InfoBadge icon="🚛" label={freight?.details?.truckType || "N/A"} />
             <InfoBadge icon="📦" label={freight?.details?.goodsType || "N/A"} />
             <InfoBadge
-              icon="📊"
+              icon="📏"
               label={`${freight?.details?.availableVolume || 0}m³`}
             />
           </HStack>
